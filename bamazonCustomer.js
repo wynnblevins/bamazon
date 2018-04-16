@@ -1,6 +1,7 @@
 require("dotenv").config();
 const db = require('mysql');
 const Table = require('cli-table');
+var inquirer = require('inquirer');
 
 var connection = db.createConnection({
     host     : process.env.DB_HOST,
@@ -10,16 +11,20 @@ var connection = db.createConnection({
 });
 connection.connect();
 
-connection.query('SELECT * FROM products;', 
-    function (error, results, fields) {;
+function onInit() {
+    connection.query('SELECT * FROM products;', 
+        function (error, results, fields) {;
     
-    if (!error) {
-        displayTable(results);
-    } else {
-        var errorMsg = `Oppsie woopsie, something went wrong grabbing data \n${error}`;
-        throw errorMsg;
-    }    
-});
+        if (!error) {
+            displayTable(results);
+            console.log('Before user prompt.');
+            promptUserPurchase();
+        } else {
+            var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
+            throw errorMsg;
+        }    
+    });
+}
 
 function displayTable(results) {
     var table = new Table({ head: [
@@ -38,5 +43,23 @@ function displayTable(results) {
 
     console.log(table.toString());
 }
+
+function promptUserPurchase() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'itemId',
+            message: 'Enter the ID of the item you wish to purchase: '
+        }
+    ], function (answer) {
+        handlePromtResponse(answer);
+    });
+}
+
+function handlePromtResponse(promptResponse) {
+    console.log('prompt response was ' + answer);
+}
+
+onInit();
 
 connection.end();
