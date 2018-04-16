@@ -50,6 +50,12 @@ function promptUserPurchase() {
             type: 'input',
             name: 'itemId',
             message: 'Enter the ID of the item you wish to purchase: '
+        },
+        {
+            type: 'input',
+            name: 'quantity',
+            default: 'Number',
+            message: 'How many would you like to buy?'
         }
     ], function (answer) {
         handlePromtResponse(answer);
