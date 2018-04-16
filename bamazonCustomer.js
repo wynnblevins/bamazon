@@ -3,15 +3,17 @@ const db = require('mysql');
 const Table = require('cli-table');
 var inquirer = require('inquirer');
 
-var connection = db.createConnection({
-    host     : process.env.DB_HOST,
-    user     : process.env.DB_USER,
-    password : process.env.DB_PASS,
-    database : process.env.DB_SCHEMA
-});
-connection.connect();
+var connection = null;
 
 function onInit() {
+    connection = db.createConnection({
+        host     : process.env.DB_HOST,
+        user     : process.env.DB_USER,
+        password : process.env.DB_PASS,
+        database : process.env.DB_SCHEMA
+    });
+    connection.connect();
+    
     connection.query('SELECT * FROM products;', 
         function (error, results, fields) {;
     
@@ -57,13 +59,13 @@ function promptUserPurchase() {
             default: 'Number',
             message: 'How many would you like to buy?'
         }
-    ], function (answer) {
+    ]).then(function (answer) {
         handlePromtResponse(answer);
     });
 }
 
 function handlePromtResponse(promptResponse) {
-    console.log('prompt response was ' + answer);
+    onInit();
 }
 
 onInit();
