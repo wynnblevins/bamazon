@@ -4,7 +4,6 @@ const Table = require('cli-table');
 var inquirer = require('inquirer');
 
 var connection = null;
-var currentDb = null;
 
 function promptForInput() {
     connection = db.createConnection({
@@ -22,7 +21,7 @@ function promptForInput() {
             displayTable(results);
             promptUserPurchase();
         } else {
-            var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
+            var errorMsg = `\nOppsie woopsie, something went wrong grabbing data: \n${error}`;
             throw errorMsg;
         }    
     });
@@ -43,7 +42,7 @@ function getCurrentStockQuantityFor(id, callback) {
         if (!error) {
             callback(results);                
         } else {
-            var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
+            var errorMsg = `\nOppsie woopsie, something went wrong grabbing data: \n${error}`;
             throw errorMsg;
         }    
     });
@@ -86,8 +85,6 @@ function promptUserPurchase() {
 }
 
 function updateStockQuantity(quantityBought, id) {
-    console.log('update db called with: ID: ' + id + ' QUANTITY: ' + quantityBought);
-
     connection = db.createConnection({
         host     : process.env.DB_HOST,
         user     : process.env.DB_USER,
@@ -100,19 +97,23 @@ function updateStockQuantity(quantityBought, id) {
     getCurrentStockQuantityFor(id, function (currentQuantity) {
         var updatedQuantity = parseInt(currentQuantity[0].stock_quantity) - parseInt(quantityBought);
         
-        // ...then update the db with the new quantity
-        console.log('Updated Quantity: ' + updatedQuantity);
-
-        connection.query('UPDATE products SET stock_quantity = ? where item_id = ?', [
-            updatedQuantity, id
-        ], function (error, results, fields) {;
-            if (!error) {
-                promptForInput();
-            } else {
-                var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
-                throw errorMsg;
-            }    
-        });
+        if (updatedQuantity < 0) {
+            console.log('Insufficient quantity!');
+            promptForInput();
+        }
+        else {
+            // ...then update the db with the new quantity
+            connection.query('UPDATE products SET stock_quantity = ? where item_id = ?', [
+                updatedQuantity, id
+            ], function (error, results, fields) {;
+                if (!error) {
+                    promptForInput();
+                } else {
+                    var errorMsg = `\nOppsie woopsie, something went wrong grabbing data: \n${error}`;
+                    throw errorMsg;
+                }    
+            });
+        }
     });
 }
 
