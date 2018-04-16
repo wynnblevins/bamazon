@@ -4,8 +4,9 @@ const Table = require('cli-table');
 var inquirer = require('inquirer');
 
 var connection = null;
+var currentDb = null;
 
-function onInit() {
+function promptForInput() {
     connection = db.createConnection({
         host     : process.env.DB_HOST,
         user     : process.env.DB_USER,
@@ -16,11 +17,31 @@ function onInit() {
     
     connection.query('SELECT * FROM products;', 
         function (error, results, fields) {;
-    
+            
         if (!error) {
             displayTable(results);
-            console.log('Before user prompt.');
             promptUserPurchase();
+        } else {
+            var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
+            throw errorMsg;
+        }    
+    });
+}
+
+function getCurrentStockQuantityFor(id, callback) {
+    connection = db.createConnection({
+        host     : process.env.DB_HOST,
+        user     : process.env.DB_USER,
+        password : process.env.DB_PASS,
+        database : process.env.DB_SCHEMA
+    });
+    connection.connect();
+    
+    connection.query('SELECT stock_quantity FROM products WHERE item_id = ' + id, 
+        function (error, results, fields) {;
+            
+        if (!error) {
+            callback(results);                
         } else {
             var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
             throw errorMsg;
@@ -64,10 +85,44 @@ function promptUserPurchase() {
     });
 }
 
-function handlePromtResponse(promptResponse) {
-    onInit();
+function updateStockQuantity(quantityBought, id) {
+    console.log('update db called with: ID: ' + id + ' QUANTITY: ' + quantityBought);
+
+    connection = db.createConnection({
+        host     : process.env.DB_HOST,
+        user     : process.env.DB_USER,
+        password : process.env.DB_PASS,
+        database : process.env.DB_SCHEMA
+    });
+    connection.connect();
+
+    // Make call to db to get current stock quantity
+    getCurrentStockQuantityFor(id, function (currentQuantity) {
+        var updatedQuantity = parseInt(currentQuantity[0].stock_quantity) - parseInt(quantityBought);
+        
+        // ...then update the db with the new quantity
+        console.log('Updated Quantity: ' + updatedQuantity);
+
+        connection.query('UPDATE products SET stock_quantity = ? where item_id = ?', [
+            updatedQuantity, id
+        ], function (error, results, fields) {;
+            if (!error) {
+                promptForInput();
+            } else {
+                var errorMsg = `Oppsie woopsie, something went wrong grabbing data: \n${error}`;
+                throw errorMsg;
+            }    
+        });
+    });
 }
 
-onInit();
+function handlePromtResponse(promptResponse) {
+    var id = promptResponse.itemId;
+    var quantityToBuy = promptResponse.quantity;
+    updateStockQuantity(quantityToBuy, id);
+}
+
+// this will prompt first time, every other prompt is recursively called
+promptForInput();
 
 connection.end();
