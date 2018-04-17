@@ -9,6 +9,8 @@ npm install
 ```
 
 Doing this will pull down node dependencies specified in package.json.  The following screenshot shows the ouput of running this command. 
+
+
 ![alt text](https://github.com/wynnblevins/bamazon/blob/master/screenshots/bamazon1.png "Installing Node Modules")
 
 ### Local MySQL Setup
