@@ -15,9 +15,9 @@ In order to run Bamazon locally, a developer needs to have a mysql database call
 ### .env File Contents
 Bamazon will populate the mysql database connection details by reading a .env file (which the developer will need to create).  The contents of the .env file should look similar to the following with the contents of the curly braces replaced with correct values:
 
-```DB_HOST=localhost<br/>
-DB_SCHEMA={some schema}<br/>
-DB_USER={some user}<br/>
+```DB_HOST=localhost
+DB_SCHEMA={some schema}
+DB_USER={some user}
 DB_PASS={some password}```
 
 ### Running Bamazon
